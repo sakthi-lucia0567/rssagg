@@ -31,6 +31,12 @@ func main() {
 		Addr:    ":" + port,
 	}
 
+	v1Router := chi.NewRouter()
+	v1Router.Get("/healthz", handleReadiness)
+	v1Router.Get("/err", handleError)
+
+	router.Mount("/v1", v1Router)
+
 	log.Printf("Server starting on port %v", port)
 	error := server.ListenAndServe()
 	if err != nil {
@@ -39,7 +45,7 @@ func main() {
 
 	router.Use(middleware.RouteHeaders().
 		Route("Origin", "https://app.skyweaver.net", cors.Handler(cors.Options{
-			AllowedOrigins:   []string{"https://api.skyweaver.net", "http://*"},
+			AllowedOrigins:   []string{"https://api.skyweaver.net", "http://*", "https://*"},
 			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 			AllowCredentials: false, // <----------<<< allow credentials
