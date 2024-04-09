@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"log"
+	"migrations"
 	"net/http"
 	"os"
 
@@ -10,7 +12,14 @@ import (
 	"github.com/go-chi/cors"
 
 	"github.com/joho/godotenv"
+	"github.com/sakthi-lucia0567/rssagg/migrations"
+
+	_ "github.com/lib/pq"
 )
+
+type apiConfig struct {
+	DB *migrations.Queries
+}
 
 func main() {
 
@@ -23,6 +32,18 @@ func main() {
 	if port == "" {
 		log.Fatal("Port is not fount in the environment")
 	}
+
+	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		log.Fatal("DB_URL is not found in the environment")
+	}
+
+	conn, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatal("Can't connect to database:", err)
+	}
+
+	queries, err := migrations.New(conn)
 
 	router := chi.NewRouter()
 
