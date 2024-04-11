@@ -1,9 +1,8 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"log"
-	"migrations"
 	"net/http"
 	"os"
 
@@ -11,14 +10,15 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
-	"github.com/sakthi-lucia0567/rssagg/migrations"
+	internal "github.com/sakthi-lucia0567/rssagg/internal/database"
 
 	_ "github.com/lib/pq"
 )
 
 type apiConfig struct {
-	DB *migrations.Queries
+	DB *internal.Queries
 }
 
 func main() {
@@ -38,12 +38,15 @@ func main() {
 		log.Fatal("DB_URL is not found in the environment")
 	}
 
-	conn, err := sql.Open("postgres", dbUrl)
+	// conn, err := sql.Open("postgres", dbUrl)
+	conn, err := pgx.Connect(context.Background(), dbUrl)
 	if err != nil {
 		log.Fatal("Can't connect to database:", err)
 	}
 
-	queries, err := migrations.New(conn)
+	apiCfg := apiConfig{
+		DB: internal.New(conn),
+	}
 
 	router := chi.NewRouter()
 
@@ -55,6 +58,7 @@ func main() {
 	v1Router := chi.NewRouter()
 	v1Router.Get("/healthz", handleReadiness)
 	v1Router.Get("/err", handleError)
+	v1Router.Post("/users", apiCfg.handleCreateUser)
 
 	router.Mount("/v1", v1Router)
 
