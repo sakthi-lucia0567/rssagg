@@ -43,6 +43,17 @@ func (apiConfig *apiConfig) handleCreateFeed(w http.ResponseWriter, r *http.Requ
 		respondWithError(w, 400, fmt.Sprintf("Feed not created %v", err))
 		return
 	}
-	respondWithJSON(w, 201, feed)
+	respondWithJSON(w, 201, databaseFeedToFeed(feed))
+
+}
+
+func (apiConfig *apiConfig) handleGetFeeds(w http.ResponseWriter, r *http.Request) {
+
+	feeds, err := apiConfig.DB.GetFeeds(r.Context())
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't get feeds %v", err))
+		return
+	}
+	respondWithJSON(w, 201, databaseFeedsToFeeds(feeds))
 
 }
