@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -32,6 +33,12 @@ func main() {
 	if port == "" {
 		log.Fatal("Port is not fount in the environment")
 	}
+
+	feed, err := urlToFeed("https://wagslane.dev/index.xml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(feed)
 
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
@@ -65,7 +72,7 @@ func main() {
 	v1Router.Get("/feed", apiCfg.handleGetFeeds)
 	v1Router.Post("/feed_follow", apiCfg.middlewareAuth(apiCfg.handleCreateFeedFollow))
 	v1Router.Get("/feed_follow", apiCfg.middlewareAuth(apiCfg.handleGetFeedFollow))
-	v1Router.Delete("/feed_follow/{feedFollowId}", apiCfg.middlewareAuth(apiCfg.handleDeleteFeedFollow))
+	v1Router.Delete("/feed_follow/{FeedFollowId}", apiCfg.middlewareAuth(apiCfg.handleDeleteFeedFollow))
 
 	router.Mount("/v1", v1Router)
 
